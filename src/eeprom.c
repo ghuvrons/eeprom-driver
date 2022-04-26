@@ -1,5 +1,3 @@
-#include "eeprom.h"
-
 /*
  * eeprom.c
  *
@@ -7,6 +5,7 @@
  *      Author: janoko
  */
 
+#include "eeprom.h"
 
 
 HAL_StatusTypeDef EEPROM_Init(EEPROM_HandlerTypedef *eeprom, I2C_HandleTypeDef *hi2c)
