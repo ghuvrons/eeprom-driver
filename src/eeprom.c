@@ -38,6 +38,7 @@ HAL_StatusTypeDef EEPROM_Read(EEPROM_HandlerTypedef *eeprom, uint16_t addr, void
 
     status = HAL_I2C_Mem_Read(eeprom->hi2c, EEPROM_DEV_ID, pageAddr, I2C_MEMADD_SIZE_16BIT, dst, partSz, 100);
     if (status != HAL_OK) return status;
+    EEPROM_Delay(10);
 
     pageIdx++;
     offset = 0;
@@ -65,6 +66,7 @@ HAL_StatusTypeDef EEPROM_Write(EEPROM_HandlerTypedef *eeprom, uint16_t addr, voi
 
     status = HAL_I2C_Mem_Write(eeprom->hi2c, EEPROM_DEV_ID, pageAddr, I2C_MEMADD_SIZE_16BIT, src, partSz, 100);
     if (status != HAL_OK) return status;
+    EEPROM_Delay(10);
 
     pageIdx++;
     offset = 0;

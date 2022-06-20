@@ -22,6 +22,10 @@
 #define EEPROM_PAGE_NUM 125
 #endif
 
+#ifndef EEPROM_Delay
+#define EEPROM_Delay(ms) HAL_Delay(ms)
+#endif
+
 typedef struct {
   I2C_HandleTypeDef *hi2c;
 } EEPROM_HandlerTypedef;
