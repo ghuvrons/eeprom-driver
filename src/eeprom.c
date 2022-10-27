@@ -10,12 +10,12 @@
 
 EEPROM_Status_t EEPROM_Init(EEPROM_HandlerTypedef *eeprom, void *i2cDev, uint8_t devId)
 {
-  eeprom->device.i2c = i2cDev;
-  eeprom->device.id = devId;
+  eeprom->i2cDevice = i2cDev;
+  eeprom->i2cId = devId;
 
-  if (eeprom->device.devCheck == NULL) return EEPROM_ERROR;
-  if (eeprom->device.devRead == NULL) return EEPROM_ERROR;
-  if (eeprom->device.devWrite == NULL) return EEPROM_ERROR;
+  if (eeprom->devCheck == NULL) return EEPROM_ERROR;
+  if (eeprom->devRead == NULL) return EEPROM_ERROR;
+  if (eeprom->devWrite == NULL) return EEPROM_ERROR;
 
   return EEPROM_OK;
 }
@@ -35,7 +35,7 @@ EEPROM_Status_t EEPROM_Read(EEPROM_HandlerTypedef *eeprom, uint16_t addr, void *
   uint16_t pageIdx = addr / EEPROM_PAGE_SIZE;
   uint8_t *dst = (uint8_t*) data;
 
-  if (eeprom->device.i2c == NULL || eeprom->devRead == NULL) return EEPROM_ERROR;
+  if (eeprom->i2cDevice == NULL || eeprom->devRead == NULL) return EEPROM_ERROR;
 
   // loop for every page
   while (length && pageIdx < EEPROM_PAGE_NUM) {
@@ -64,7 +64,7 @@ EEPROM_Status_t EEPROM_Write(EEPROM_HandlerTypedef *eeprom, uint16_t addr, void 
   uint16_t pageIdx = addr / EEPROM_PAGE_SIZE;
   uint8_t *src = (uint8_t*) data;
 
-  if (eeprom->device.i2c == NULL || eeprom->devWrite == NULL) return EEPROM_ERROR;
+  if (eeprom->i2cDevice == NULL || eeprom->devWrite == NULL) return EEPROM_ERROR;
 
   // loop for every page
   while (length && pageIdx < EEPROM_PAGE_NUM) {

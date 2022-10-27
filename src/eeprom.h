@@ -32,10 +32,8 @@ typedef enum
 } EEPROM_Status_t;
 
 typedef struct EEPROM_HandlerTypedef {
-  struct {
-    void *i2c;
-    uint8_t id;
-  } device;
+  void *i2cDevice;
+  uint8_t i2cId;
   EEPROM_Status_t (*devCheck)(struct EEPROM_HandlerTypedef* i2cDev);
   EEPROM_Status_t (*devRead)(struct EEPROM_HandlerTypedef* i2cDev,
                              uint16_t memAddress,
