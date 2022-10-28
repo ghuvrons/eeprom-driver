@@ -8,27 +8,35 @@
 #include "eeprom.h"
 
 
-HAL_StatusTypeDef EEPROM_Init(EEPROM_HandlerTypedef *eeprom, I2C_HandleTypeDef *hi2c)
+EEPROM_Status_t EEPROM_Init(EEPROM_HandlerTypedef *eeprom, void *i2cDev, uint8_t devId)
 {
-  eeprom->hi2c = hi2c;
-  return HAL_OK;
+  eeprom->i2cDevice = i2cDev;
+  eeprom->i2cId = devId;
+
+  if (eeprom->delay == NULL) return EEPROM_ERROR;
+  if (eeprom->devCheck == NULL) return EEPROM_ERROR;
+  if (eeprom->devRead == NULL) return EEPROM_ERROR;
+  if (eeprom->devWrite == NULL) return EEPROM_ERROR;
+
+  return EEPROM_OK;
 }
 
 
-HAL_StatusTypeDef EEPROM_Check(EEPROM_HandlerTypedef *eeprom)
+EEPROM_Status_t EEPROM_Check(EEPROM_HandlerTypedef *eeprom)
 {
-  HAL_StatusTypeDef status = HAL_I2C_IsDeviceReady(eeprom->hi2c, EEPROM_DEV_ID, 10, 100);
-  return status;
+  return (eeprom->devCheck != NULL)? eeprom->devCheck(eeprom): EEPROM_ERROR;
 }
 
 
-HAL_StatusTypeDef EEPROM_Read(EEPROM_HandlerTypedef *eeprom, uint16_t addr, void *data, uint16_t length)
+EEPROM_Status_t EEPROM_Read(EEPROM_HandlerTypedef *eeprom, uint16_t addr, void *data, uint16_t length)
 {
-  HAL_StatusTypeDef status;
+  EEPROM_Status_t status;
   uint16_t partSz, pageAddr;
   uint16_t offset = addr % EEPROM_PAGE_SIZE;
   uint16_t pageIdx = addr / EEPROM_PAGE_SIZE;
   uint8_t *dst = (uint8_t*) data;
+
+  if (eeprom->i2cDevice == NULL || eeprom->devRead == NULL) return EEPROM_ERROR;
 
   // loop for every page
   while (length && pageIdx < EEPROM_PAGE_NUM) {
@@ -36,27 +44,30 @@ HAL_StatusTypeDef EEPROM_Read(EEPROM_HandlerTypedef *eeprom, uint16_t addr, void
     partSz -= offset;
     pageAddr = pageIdx*EEPROM_PAGE_SIZE + offset;
 
-    status = HAL_I2C_Mem_Read(eeprom->hi2c, EEPROM_DEV_ID, pageAddr, I2C_MEMADD_SIZE_16BIT, dst, partSz, 100);
-    if (status != HAL_OK) return status;
-    EEPROM_Delay(10);
+    status = eeprom->devRead(eeprom, pageAddr, dst, partSz);
+    if (status != EEPROM_OK) return status;
 
     pageIdx++;
     offset = 0;
     length -= partSz;
     dst += partSz;
+
+    if (length) eeprom->delay(10);
   }
 
   return status;
 }
 
 
-HAL_StatusTypeDef EEPROM_Write(EEPROM_HandlerTypedef *eeprom, uint16_t addr, void *data, uint16_t length)
+EEPROM_Status_t EEPROM_Write(EEPROM_HandlerTypedef *eeprom, uint16_t addr, void *data, uint16_t length)
 {
-  HAL_StatusTypeDef status;
+  EEPROM_Status_t status;
   uint16_t partSz, pageAddr;
   uint16_t offset = addr % EEPROM_PAGE_SIZE;
   uint16_t pageIdx = addr / EEPROM_PAGE_SIZE;
   uint8_t *src = (uint8_t*) data;
+
+  if (eeprom->i2cDevice == NULL || eeprom->devWrite == NULL) return EEPROM_ERROR;
 
   // loop for every page
   while (length && pageIdx < EEPROM_PAGE_NUM) {
@@ -64,14 +75,15 @@ HAL_StatusTypeDef EEPROM_Write(EEPROM_HandlerTypedef *eeprom, uint16_t addr, voi
     partSz -= offset;
     pageAddr = pageIdx*EEPROM_PAGE_SIZE + offset;
 
-    status = HAL_I2C_Mem_Write(eeprom->hi2c, EEPROM_DEV_ID, pageAddr, I2C_MEMADD_SIZE_16BIT, src, partSz, 100);
-    if (status != HAL_OK) return status;
-    EEPROM_Delay(10);
+    status = eeprom->devWrite(eeprom, pageAddr, src, partSz);
+    if (status != EEPROM_OK) return status;
 
     pageIdx++;
     offset = 0;
     length -= partSz;
     src += partSz;
+
+    if (length) eeprom->delay(10);
   }
 
   return status;

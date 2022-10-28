@@ -8,7 +8,8 @@
 #ifndef DRIVER_EEPROM_H_
 #define DRIVER_EEPROM_H_
 
-#include "stm32f4xx_hal.h"
+#include "stddef.h"
+#include "stdint.h"
 
 #ifndef EEPROM_DEV_ID
 #define EEPROM_DEV_ID ((0x50 | (0)) << 1)
@@ -22,17 +23,32 @@
 #define EEPROM_PAGE_NUM 125
 #endif
 
-#ifndef EEPROM_Delay
-#define EEPROM_Delay(ms) HAL_Delay(ms)
-#endif
+typedef enum
+{
+  EEPROM_OK       = 0x00,
+  EEPROM_ERROR    = 0x01,
+  EEPROM_BUSY     = 0x02,
+  EEPROM_TIMEOUT  = 0x03
+} EEPROM_Status_t;
 
-typedef struct {
-  I2C_HandleTypeDef *hi2c;
+typedef struct EEPROM_HandlerTypedef {
+  void *i2cDevice;
+  uint8_t i2cId;
+
+  void (*delay)(uint32_t ms);
+
+  EEPROM_Status_t (*devCheck)(struct EEPROM_HandlerTypedef* i2cDev);
+  EEPROM_Status_t (*devRead)(struct EEPROM_HandlerTypedef* i2cDev,
+                             uint16_t memAddress,
+                             uint8_t *dst, uint16_t size);
+  EEPROM_Status_t (*devWrite)(struct EEPROM_HandlerTypedef* i2cDev,
+                              uint16_t memAddress,
+                              uint8_t *src, uint16_t size);
 } EEPROM_HandlerTypedef;
 
-HAL_StatusTypeDef EEPROM_Init(EEPROM_HandlerTypedef*, I2C_HandleTypeDef*);
-HAL_StatusTypeDef EEPROM_Check(EEPROM_HandlerTypedef*);
-HAL_StatusTypeDef EEPROM_Read(EEPROM_HandlerTypedef*, uint16_t addr, void *data, uint16_t length);
-HAL_StatusTypeDef EEPROM_Write(EEPROM_HandlerTypedef*, uint16_t addr, void *data, uint16_t length);
+EEPROM_Status_t EEPROM_Init(EEPROM_HandlerTypedef*, void *i2cDev, uint8_t devId);
+EEPROM_Status_t EEPROM_Check(EEPROM_HandlerTypedef*);
+EEPROM_Status_t EEPROM_Read(EEPROM_HandlerTypedef*, uint16_t addr, void *data, uint16_t length);
+EEPROM_Status_t EEPROM_Write(EEPROM_HandlerTypedef*, uint16_t addr, void *data, uint16_t length);
 
 #endif /* DRIVERS_EEPROM_SOURCE_EEPROM_H_ */
