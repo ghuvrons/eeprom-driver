@@ -16,11 +16,11 @@
 #endif
 
 #ifndef EEPROM_PAGE_SIZE
-#define EEPROM_PAGE_SIZE 32
+#define EEPROM_PAGE_SIZE 64
 #endif
 
 #ifndef EEPROM_PAGE_NUM
-#define EEPROM_PAGE_NUM 125
+#define EEPROM_PAGE_NUM 1024
 #endif
 
 typedef enum
